@@ -41,8 +41,19 @@ export const createPost = async (postData) => {
     createdAt: serverTimestamp()
   });
 };
-
-export const deletePost = async (id) => {
-  const docRef = doc(db, 'posts', id);
-  await deleteDoc(docRef);
-};
+export const deletePost = async (postId) => {
+    try {
+      const response = await fetch(`http://localhost:3000/api/posts/${postId}`, {
+        method: 'DELETE'
+      });
+      
+      if (!response.ok) {
+        throw new Error('Error al eliminar el post');
+      }
+      
+      return await response.json();
+    } catch (error) {
+      console.error('Error:', error);
+      throw error;
+    }
+  };

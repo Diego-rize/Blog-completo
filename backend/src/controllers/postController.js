@@ -70,3 +70,40 @@ export const getPostById = (db) => async (req, res) => {
     res.status(500).json({ error: 'Error al obtener el post' });
   }
 };
+
+// Añade esta función debajo de tus funciones existentes
+export const deletePost = (db, storage) => async (req, res) => {
+    try {
+      const postId = req.params.id;
+      
+      // Primero obtener el post para ver si tiene imagen
+      const postRef = doc(db, 'posts', postId);
+      const postSnap = await getDoc(postRef);
+      
+      if (!postSnap.exists()) {
+        return res.status(404).json({ error: 'Post no encontrado' });
+      }
+      
+      const postData = postSnap.data();
+      
+      // Si el post tiene una imagen, eliminarla del Storage
+      if (postData.imageUrl) {
+        try {
+          // Extraer la referencia de la URL de la imagen
+          const imageRef = ref(storage, postData.imageUrl);
+          await deleteObject(imageRef);
+        } catch (imageError) {
+          console.error('Error al eliminar la imagen:', imageError);
+          // Continuamos con la eliminación del post incluso si falla la imagen
+        }
+      }
+      
+      // Eliminar el documento de Firestore
+      await deleteDoc(postRef);
+      
+      res.json({ message: 'Post eliminado correctamente', id: postId });
+    } catch (error) {
+      console.error('Error al eliminar el post:', error);
+      res.status(500).json({ error: 'Error al eliminar el post' });
+    }
+  };

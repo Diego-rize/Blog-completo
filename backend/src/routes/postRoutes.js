@@ -1,8 +1,9 @@
 import { Router } from 'express';
-import { 
-  createPost, 
-  getAllPosts, 
-  getPostById 
+import {
+  createPost,
+  getAllPosts,
+  getPostById,
+  deletePost
 } from '../controllers/postController.js';
 
 const router = Router();
@@ -16,6 +17,9 @@ export default (db, storage, upload) => {
   
   // Obtener un post por ID
   router.get('/:id', getPostById(db));
-
+  
+  // Eliminar un post
+  router.delete('/:id', deletePost(db, storage));
+  
   return router;
 };

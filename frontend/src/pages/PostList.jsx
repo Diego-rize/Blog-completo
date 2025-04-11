@@ -1,20 +1,37 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getPosts } from '../services/api';
+import { getPosts, deletePost } from '../services/api';
 import './PostList.css';
 
 const PostList = () => {
   const [posts, setPosts] = useState([]);
   const [search, setSearch] = useState('');
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchData = async () => {
+  
+  const fetchData = async () => {
+    try {
       const fetchedPosts = await getPosts();
       setPosts(fetchedPosts);
-    };
+    } catch (error) {
+      console.error("Error fetching posts:", error);
+    }
+  };
+
+  useEffect(() => {
     fetchData();
   }, []);
+  
+  const handleDelete = async (id) => {
+    if (window.confirm('¿Estás seguro de que quieres eliminar este post?')) {
+      try {
+        await deletePost(id);
+        // Actualizar la lista de posts después de eliminar
+        fetchData();
+      } catch (error) {
+        console.error("Error deleting post:", error);
+      }
+    }
+  };
 
   const filteredPosts = posts.filter((post) =>
     post.title.toLowerCase().includes(search.toLowerCase())
@@ -39,7 +56,15 @@ const PostList = () => {
             <h2>{post.title}</h2>
             <p>{post.date}</p>
             <p>{post.content.slice(0, 100)}...</p>
-            <button onClick={() => navigate(`/post/${post.id}`)}>Leer más</button>
+            <div className="post-buttons">
+              <button onClick={() => navigate(`/post/${post.id}`)}>Leer más</button>
+              <button 
+                onClick={() => handleDelete(post.id)}
+                className="delete-button"
+              >
+                Eliminar
+              </button>
+            </div>
           </div>
         ))}
       </div>
