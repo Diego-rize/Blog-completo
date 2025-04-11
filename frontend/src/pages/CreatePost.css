@@ -1,4 +1,52 @@
 .create-post-container {
+    max-width: 600px;
+    margin: 20px auto;
     padding: 30px;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   }
   
+  .create-post-container h1 {
+    text-align: center;
+    color: #333;
+  }
+  
+  .create-post-container form {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  .create-post-container input,
+  .create-post-container textarea,
+  .create-post-container input[type="file"] {
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 16px;
+  }
+  
+  .create-post-container textarea {
+    min-height: 150px;
+    resize: vertical;
+  }
+  
+  .create-post-container button {
+    padding: 12px;
+    background: #007bff;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  .create-post-container button:hover {
+    background: #0056b3;
+  }
+  
+  .create-post-container button:disabled {
+    background: #ccc;
+    cursor: not-allowed;
+  }

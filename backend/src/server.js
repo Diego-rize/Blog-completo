@@ -1,95 +1,41 @@
 import express from 'express';
 import cors from 'cors';
+import multer from 'multer';
 import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, addDoc, getDocs, doc, deleteDoc } from 'firebase/firestore';
+import { getFirestore } from 'firebase/firestore';
+import { getStorage } from 'firebase/storage';
+import postRoutes from './routes/postRoutes.js';
 
-// Configuración Firebase
+// Configuración de Firebase
 const firebaseConfig = {
   apiKey: "AIzaSyCZ0k_MzFCbo-EO2K3w2scf9a4sWJmeBR4",
   authDomain: "blog-api-d7238.firebaseapp.com",
-  projectId: "blog-api-d7238"
+  projectId: "blog-api-d7238",
+  storageBucket: "blog-api-d7238.appspot.com" // ¡Requerido para imágenes!
 };
 
-// Inicializar app y Firebase
-const app = express();
+// Inicialización de Firebase
 const firebaseApp = initializeApp(firebaseConfig);
 const db = getFirestore(firebaseApp);
+const storage = getStorage(firebaseApp);
 
-// Middlewares
+// Configuración de Multer (para subir imágenes)
+const upload = multer({ storage: multer.memoryStorage() });
+
+// Express
+const app = express();
 app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Ruta raíz
+// Rutas
 app.get('/', (req, res) => {
-  res.send('¡API del Blog funcionando correctamente!');
+  res.send('¡API del Blog funcionando!');
 });
-
-// Crear post (POST)
-app.post('/api/posts', async (req, res) => {
-  try {
-    const { title, content } = req.body;
-
-    if (!title || !content) {
-      return res.status(400).json({ error: 'Se requieren title y content' });
-    }
-
-    const docRef = await addDoc(collection(db, 'posts'), {
-      title,
-      content,
-      createdAt: new Date().toISOString()
-    });
-
-    res.status(201).json({
-      id: docRef.id,
-      title,
-      content
-    });
-  } catch (error) {
-    console.error("Error al crear post:", error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Obtener posts (GET)
-app.get('/api/posts', async (req, res) => {
-  try {
-    const postsSnapshot = await getDocs(collection(db, 'posts'));
-    const posts = postsSnapshot.docs.map(doc => ({
-      id: doc.id,
-      ...doc.data()
-    }));
-    res.json(posts);
-  } catch (error) {
-    console.error("Error al obtener posts:", error);
-    res.status(500).json({ error: 'Error al obtener posts' });
-  }
-});
-
-// Eliminar post (DELETE)
-app.delete('/api/posts/:id', async (req, res) => {
-  console.log("➡️ LLEGÓ AL DELETE"); // Verifica si la ruta se ejecuta
-
-  try {
-    const postId = req.params.id;
-    const postRef = doc(db, 'posts', postId);
-
-    await deleteDoc(postRef);
-
-    res.json({
-      success: true,
-      message: `Post ${postId} eliminado correctamente`
-    });
-  } catch (error) {
-    console.error("Error al eliminar:", error);
-    res.status(500).json({
-      error: "Error al eliminar el post",
-      details: error.message
-    });
-  }
-});
+app.use('/api/posts', postRoutes(db, storage, upload)); // Conexión con las rutas de posts
 
 // Puerto
 const PORT = 3000;
 app.listen(PORT, () => {
-  console.log(`🚀 Servidor corriendo en http://localhost:${PORT}`);
+  console.log(`🚀 Servidor en http://localhost:${PORT}`);
 });
